@@ -11,6 +11,6 @@ class Crop(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     plant_name = Column(String, nullable=False)
     harvest_year = Column(Integer, nullable=False)
-    farm_id = Column(UUID(as_uuid=True), ForeignKey("farms.id"), nullable=False)
+    farm_id = Column(UUID(as_uuid=True), ForeignKey("crop.id"), nullable=False)
 
-    farm = relationship("Farm", back_populates="crops")
+    farm = relationship("crop", back_populates="crops")
