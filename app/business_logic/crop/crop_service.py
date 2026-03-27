@@ -1,16 +1,19 @@
 from fastapi import HTTPException
-from data_access.crop.crop_repository import Crop
+from data_access.crop.crop_repository import Crop, CropRepository
 from data_access.db.models.crop import Crop
 from api.crop.crop_schemas import CropRead, CropCreate
 
 from uuid import UUID
 
 class CropService:
-    def __init__(self, repo: Crop):
-        self.repo = repo
+    def __init__(self, repo: CropRepository):
+        self.repo: CropRepository = repo
 
     async def get_crop(self):
-        return await self.repo.get_all()
+        print("FFFFF")
+        asd = await self.repo.get_all()
+        print("asdasd", asd)
+        return asd
     
     async def get_by_id(self, farm_id: UUID):
         crop = await self.repo.get_by_id(farm_id)

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from data_access.db.models.crop import Crop
 
-class CropRepository:
+class ReceiptRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 

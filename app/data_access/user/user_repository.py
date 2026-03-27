@@ -1,0 +1,53 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from uuid import UUID
+from data_access.db.models.role import Role
+from data_access.db.models.user import User
+
+
+class UserRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def register_user(self, first_name, last_name, email, hashed_password):
+        result = await self.db.execute(
+            select(Role).where(
+                (Role.name == "conditer")
+            )
+        )
+        role_object = result.scalar_one_or_none()
+        
+        user = User(
+            first_name = first_name, 
+            last_name = last_name, 
+            email = email, 
+            password = hashed_password,
+            role_id=role_object.id,
+        )
+
+        self.db.add(user)
+
+        await self.db.commit()
+        await self.db.refresh(user)
+
+        return user
+
+    async def login_user(self, email, hashed_password):
+        result = await self.db.execute(
+            select(User).where(
+                (User.email == email)
+            )
+        )
+
+        user_exists = result.scalar_one_or_none()
+
+        if user_exists:
+            user = await self.db.execute(
+                select(User).where(
+                    (User.password == hashed_password)
+                )
+            )
+
+            return user.scalar_one_or_none()
+
+        return None

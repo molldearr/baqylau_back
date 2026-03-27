@@ -1,15 +1,15 @@
 from fastapi import HTTPException
-from data_access.farm.farm_repository import Farm
+from data_access.farm.farm_repository import FarmRepository
 from data_access.db.models.farm import Farm
 from api.farm.farm_schemas import FarmRead, FarmCreate
 
 from uuid import UUID
 
 class FarmService:
-    def __init__(self, repo: Farm):
+    def __init__(self, repo: FarmRepository):
         self.repo = repo
 
-    async def get_crop(self):
+    async def get_farm(self):
         return await self.repo.get_all()
     
     async def get_by_id(self, farm_id: UUID):

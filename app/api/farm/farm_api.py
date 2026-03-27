@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.farm.farm_schemas import FarmCreate, FarmRead
-from bussiness_logic.farm.farm_service import FarmService
+from business_logic.farm.farm_service import FarmService
 from data_access.farm.farm_repository import FarmRepository
 from data_access.db.session import get_db
 
@@ -17,7 +17,7 @@ def get_farm_service(db: AsyncSession = Depends(get_db)) -> FarmService:
 async def get_farms(
     service: FarmService = Depends(get_farm_service),
 ):
-    return await service.get_farms()
+    return await service.get_farm()
 
 
 @router.post("/create", response_model=FarmRead)
