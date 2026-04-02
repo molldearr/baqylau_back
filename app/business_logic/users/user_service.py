@@ -27,8 +27,6 @@ class UserService:
         
         logged_in_user = await self.repo.login_user(email, hashed_password)
         
-        print("QWEQWEQWEQW: ")
-
         if not logged_in_user:
             return None  # или raise HTTPException(401)
 

@@ -5,6 +5,7 @@ from .receipt import Receipt
 from .dish_image import DishImage
 from .user import User
 from .role import Role
+from .tutor import Tutor
 
 __all__ = [
     "Crop",
@@ -12,4 +13,5 @@ __all__ = [
     "Dish",
     "Receipt",
     "DishImage",
+    "Tutor",
 ]

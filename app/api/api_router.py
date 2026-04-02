@@ -4,6 +4,7 @@ from api.crop.crop_api import router as crop_router
 from api.receipts.receipt_api import router as receipts_router
 from api.dishes.dish_api import router as dishes_router
 from api.users.user_api import router as users_router
+from api.tutors.tutor_api import router as tutors_router
 
 api_router = APIRouter()
 
@@ -35,4 +36,10 @@ api_router.include_router(
     users_router,
     prefix="/users",
     tags=["USER"]
+)
+
+api_router.include_router(
+    tutors_router,
+    prefix="/tutors",
+    tags=["TUTOR"]
 )

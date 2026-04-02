@@ -190,12 +190,119 @@ async def seed_roles(db: AsyncSession):
 
     await db.commit()
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from data_access.db.models.user import User
+from data_access.db.models.tutor import Tutor
+import hashlib
+
+def hash_password(password: str) -> str:
+    return hashlib.md5(password.encode('utf-8')).hexdigest()
+
+async def seed_tutors(db: AsyncSession):
+    """Tutor кестесін толтыру, User Foreign Key бар екенін тексеру"""
+
+    users_data = [
+        {"first_name": "Aruzhan", "last_name": "Kairat", "email": "aru@gmail.com", "password": "123"},
+        {"first_name": "Dias", "last_name": "Serik", "email": "dias@gmail.com", "password": "123"},
+        {"first_name": "Aigerim", "last_name": "Nurlan", "email": "aigerim@gmail.com", "password": "123"},
+    ]
+
+    # 👉 получаем роль (как в register_user)
+    result = await db.execute(
+        select(Role).where(Role.name == "conditer")
+    )
+    role_object = result.scalar_one_or_none()
+
+    if not role_object:
+        raise Exception("Role 'conditer' not found")
+
+    users = []
+
+    for u in users_data:
+        result = await db.execute(
+            select(User).where(User.email == u["email"])
+        )
+        user = result.scalar_one_or_none()
+
+        if not user:
+            user = User(
+                first_name=u["first_name"],
+                last_name=u["last_name"],
+                email=u["email"],
+                password=hash_password(u["password"]),  # ✅ хэш
+                role_id=role_object.id,                # ✅ роль
+            )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+
+        users.append(user)
+
+    # --- DEBUG ---
+    result = await db.execute(select(User))
+    all_users = result.scalars().all()
+    print("Users in DB:", [(u.id, u.email) for u in all_users])
+
+    # --- TUTORS ---
+    tutors_data = [
+        {
+            "user": users[0],
+            "bio": "Math tutor with 5 years experience",
+            "experience_years": 5,
+            "education": "KazNU",
+            "price_per_hour": 5000,
+            "format": "online",
+            "city": "Almaty",
+        },
+        {
+            "user": users[1],
+            "bio": "Physics tutor",
+            "experience_years": 3,
+            "education": "ENU",
+            "price_per_hour": 4000,
+            "format": "offline",
+            "city": "Astana",
+        },
+        {
+            "user": users[2],
+            "bio": "English tutor",
+            "experience_years": 6,
+            "education": "KIMEP",
+            "price_per_hour": 6000,
+            "format": "both",
+            "city": "Karaganda",
+        },
+    ]
+
+    for t in tutors_data:
+        result = await db.execute(
+            select(Tutor).where(Tutor.user_id == t["user"].id)
+        )
+        exists = result.scalar_one_or_none()
+
+        if not exists:
+            tutor = Tutor(
+                user_id=t["user"].id,
+                bio=t["bio"],
+                experience_years=t["experience_years"],
+                education=t["education"],
+                price_per_hour=t["price_per_hour"],
+                currency="KZT",
+                format=t["format"],
+                city=t["city"],
+            )
+            db.add(tutor)
+
+    await db.commit()
+
 async def run_seeders(db: AsyncSession):
     # await seed_farms(db)
     # await seed_crops(db)
     # await seed_dishes(db)
     # await seed_receipt_for_dish(db)
-    await seed_roles(db)
+    # await seed_roles(db)
+    await seed_tutors(db)
 
 
 async def main():
