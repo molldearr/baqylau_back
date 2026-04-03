@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from api.dishes.dish_schemas import DishCreate, DishNewRead, DishRead
+from api.dishes.dish_schemas import DishAllRead, DishCreate, DishImageRead, DishNewRead, DishRead
 from data_access.db.models.dish import Dish
 from data_access.dish.dish_repository import DishRepository
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,15 +12,33 @@ class DishService:
         self.repo = DishRepository(db)
 
     async def get_all_dishes(self):
-        all_dishes = await self.repo.get_all_dishes()
-        return all_dishes
+        rows = await self.repo.get_all_dishes()
+
+        dishes = []
+
+        for row in rows:
+            dish = DishAllRead(
+                id=row.id,
+                name=row.name,
+                description=row.description,
+                value=float(row.avg_rating) if row.avg_rating else 0,
+                images=[
+                    DishImageRead(
+                        image_path=row.image_path
+                    )
+                ]
+            )
+            dishes.append(dish)
+
+        return dishes
 
     async def get_by_id(self, dish_id: UUID):
         dish = await self.repo.get_by_id(dish_id)
 
         if not dish:
             raise HTTPException(status_code=404, detail="Dish not found")
-        return dish
+
+        return DishRead.model_validate(dish)
     
     async def create_dishes(self, data: DishCreate):
         dish = Dish(

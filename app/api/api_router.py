@@ -19,11 +19,11 @@ api_router.include_router(
     tags=["CROP"]
 )
 
-api_router.include_router(
-    receipts_router,
-    prefix="/receipts",
-    tags=["RECEIPT"]
-)
+# api_router.include_router(
+#     receipts_router,
+#     prefix="/receipts",
+#     tags=["RECEIPT"]
+# )
 
 api_router.include_router(
     dishes_router,

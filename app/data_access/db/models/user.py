@@ -17,3 +17,5 @@ class User(Base):
     role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
 
     roles = relationship("Role", back_populates="user")
+
+    ratings = relationship("Rating", back_populates="user")

@@ -12,8 +12,10 @@ class Receipt(Base):
     title = Column(String, nullable=False)        # рецепт атауы
     instructions = Column(String, nullable=False) # дайындалу қадамдары
     cooking_time = Column(Integer)                # минутпен
+    
+    # АЛЫП ТАСТАУ КЕРЕК!!!!!!!!!!!!!!!!!!!
     difficulty = Column(String)                   # easy / medium / hard
-    
-    
+
+    calorie = Column(Integer)
 
     dishes = relationship("Dish", back_populates="receipt")

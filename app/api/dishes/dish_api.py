@@ -15,7 +15,7 @@ def get_dish_service(db: AsyncSession = Depends(get_db)) -> DishService:
 
 
 @router.get("/all", response_model=list[DishAllRead])
-async def get_all_receipts(
+async def get_all_dishes(
     service: DishService = Depends(get_dish_service),
 ):
     return await service.get_all_dishes()

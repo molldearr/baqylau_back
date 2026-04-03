@@ -1,8 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import func, select
 from uuid import UUID
 
 from sqlalchemy.orm import selectinload
+from data_access.db.models.rating import Rating
+from data_access.db.models.dish_image import DishImage
 from data_access.db.models.dish import Dish
 
 
@@ -12,20 +14,31 @@ class DishRepository:
 
     async def get_all_dishes(self):
         result = await self.db.execute(
-            select(Dish).options(selectinload(Dish.images))
+            select(
+                Dish.id,
+                Dish.name,
+                Dish.description,
+                DishImage.image_path,
+                func.avg(Rating.value).label("avg_rating")
+            )
+            .outerjoin(DishImage, DishImage.dish_id == Dish.id)
+            .outerjoin(Rating, Rating.dish_id == Dish.id)
+            .group_by(Dish.id, Dish.name, Dish.description, DishImage.image_path)
         )
-        return result.scalars().all()
+
+        return result.all()
     
     async def get_by_id(self, dish_id: UUID) -> Dish | None:
         result = await self.db.execute(
             select(Dish)
             .options(
-                selectinload(Dish.images),   # подгружаем картинки сразу
-                selectinload(Dish.receipt)   # подгружаем рецепт сразу
+                selectinload(Dish.images),
+                selectinload(Dish.receipt),
+                selectinload(Dish.kitchen),
+                selectinload(Dish.comments),
             )
             .where(Dish.id == dish_id)
         )
-        print('ASDASDSD: ')
         return result.scalar_one_or_none()
 
     async def create_dishes(self, dish: Dish) -> Dish:

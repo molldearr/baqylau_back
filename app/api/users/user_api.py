@@ -27,7 +27,7 @@ async def user_login(
     service: UserService = Depends(get_user_service),
 ):
     result = await service.login_user(user.email, user.password)
-    print("RESULTTTTTTTTTTTTTTTTTTTTTTT: ", result)
+
     if not result:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return result

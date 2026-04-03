@@ -18,7 +18,7 @@ def get_receipt_service(db: AsyncSession = Depends(get_db)) -> ReceiptService:
 async def get_all_receipts(
     service: ReceiptService = Depends(get_receipt_service),
 ):
-    return await service.get_all_receipts()
+    return await service.get_all_dishes()
 
 
 @router.post("/:id", response_model=FarmRead)
