@@ -8,6 +8,7 @@ from .role import Role
 from .kitchen import Kitchen
 from .comment import Comment
 from .rating import Rating
+from .tutor import Tutor
 
 __all__ = [
     "Crop",
@@ -18,4 +19,5 @@ __all__ = [
     "Kitchen",
     "Comment",
     "Rating",
+    "Tutor",
 ]
