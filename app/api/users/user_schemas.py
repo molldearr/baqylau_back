@@ -19,6 +19,8 @@ class UserCreate(BaseModel):
     password: str
 
 
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -28,3 +30,30 @@ class UserLoginResponse(BaseModel):
     user: UserRead
     access_token: str
     token_type: str
+
+
+class RoleRead(BaseModel):
+    id: UUID
+    name: str
+
+    model_config = {"from_attributes": True}
+
+
+class UserAllRead(BaseModel):
+    id: UUID
+    first_name: str
+    last_name: str
+    email: str
+    avatar_url: Optional[str] = None
+    role: Optional[RoleRead] = None  # связь с ролью
+
+    model_config = {"from_attributes": True}
+
+
+class UserAdminCreate(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    password: str
+    avatar_url: Optional[str]
+    role: str

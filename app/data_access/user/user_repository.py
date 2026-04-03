@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
+
+from sqlalchemy.orm import selectinload
 from data_access.db.models.role import Role
 from data_access.db.models.user import User
 
@@ -51,3 +53,12 @@ class UserRepository:
             return user.scalar_one_or_none()
 
         return None
+
+    async def get_all_users(self):
+        result = await self.db.execute(
+            select(User)
+            .options(selectinload(User.roles))
+        )
+
+        users = result.scalars().all()
+        return users

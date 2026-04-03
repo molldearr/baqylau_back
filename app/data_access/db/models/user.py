@@ -21,4 +21,3 @@ class User(Base):
     roles = relationship("Role", back_populates="user")
 
     ratings = relationship("Rating", back_populates="user")
-    tutor_profile = relationship("Tutor", back_populates="user", uselist=False)

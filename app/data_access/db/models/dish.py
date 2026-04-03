@@ -9,10 +9,12 @@ class Dish(Base):
     __tablename__ = "dishes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
     name = Column(String, nullable=False)
+
     description = Column(String, nullable=False)
-    
-    # difficulty = 
+
+    difficulty_id = Column(UUID(as_uuid=True), ForeignKey("difficulties.id"))
 
     receipt_id = Column(UUID(as_uuid=True), ForeignKey("receipts.id"))
     
@@ -27,3 +29,5 @@ class Dish(Base):
     ratings = relationship("Rating", back_populates="dish")
 
     comments = relationship("Comment", back_populates="dish")
+
+    difficulties = relationship("Difficulty", back_populates="dish")

@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from api.users.user_schemas import UserCreate, UserLogin, UserLoginResponse, UserRead
-from data_access.user.user_repository import UserRepository
+from api.users.user_schemas import UserAdminCreate, UserCreate, UserLogin, UserRead
+from utils.auth_middleware import get_current_user
 from business_logic.users.user_service import UserService
 from data_access.db.session import get_db
 
@@ -31,3 +30,20 @@ async def user_login(
     if not result:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return result
+
+@router.get("/all")
+async def get_all_users(
+    service: UserService = Depends(get_user_service),
+    user=Depends(get_current_user),
+):
+    result = await service.get_all_users()
+    
+    return result
+
+
+# @router.post("/new", response_model=UserAdminRead)
+# async def user_register(
+#     user: UserAdminCreate,
+#     service: UserService = Depends(get_user_service),
+# ):
+#     return await service.create_user(user.first_name, user.last_name, user.email, user.password, avatar_url=user.avatar_url, role=user.role)

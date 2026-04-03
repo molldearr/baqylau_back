@@ -5,28 +5,10 @@ from data_access.db.models.role import Role
 from data_access.db.models.receipt import Receipt
 from data_access.db.models.dish import Dish
 from data_access.db.models.dish_image import DishImage
-from data_access.db.models.farm import Farm
-from data_access.db.models.crop import Crop
+from data_access.db.models.user import User
 from data_access.db.session import AsyncSessionLocal
+import hashlib
 
-
-async def seed_farms(db: AsyncSession):
-    farms_data = [
-        {"name": "Sunrise Farm", "region": "Almaty",   "area_hectares": 150.5},
-        {"name": "Green Valley", "region": "Kostanay", "area_hectares": 320.0},
-        {"name": "Steppe Gold",  "region": "Akmola",   "area_hectares": 500.0},
-    ]
-    for f in farms_data:
-        result = await db.execute(select(Farm).where(Farm.name == f["name"]))
-        exists = result.scalar_one_or_none()
-        if not exists:
-            farm = Farm(
-                name=f["name"],
-                region=f["region"],
-                area_hectares=f["area_hectares"]
-            )
-            db.add(farm)
-    await db.commit()
 
 async def seed_dishes(db: AsyncSession):
     dishes_data = [
@@ -79,70 +61,12 @@ async def seed_dishes(db: AsyncSession):
     await db.commit()
 
 
-async def seed_crops(db: AsyncSession):
-    """Crop кестесін толтыру, Farm Foreign Key бар екенін тексеру"""
-    result = await db.execute(select(Farm).where(Farm.name == "Sunrise Farm"))
-    sunrise_farm = result.scalar_one_or_none()
-    if not sunrise_farm:
-        sunrise_farm = Farm(name="Sunrise Farm", region="Almaty", area_hectares=150.5)
-        db.add(sunrise_farm)
-        await db.commit()
-        await db.refresh(sunrise_farm)
-
-    result = await db.execute(select(Farm).where(Farm.name == "Green Valley"))
-    green_valley = result.scalar_one_or_none()
-    if not green_valley:
-        green_valley = Farm(name="Green Valley", region="Kostanay", area_hectares=320.0)
-        db.add(green_valley)
-        await db.commit()
-        await db.refresh(green_valley)
-
-    result = await db.execute(select(Farm).where(Farm.name == "Steppe Gold"))
-    steppe_gold = result.scalar_one_or_none()
-    if not steppe_gold:
-        steppe_gold = Farm(name="Steppe Gold", region="Akmola", area_hectares=500.0)
-        db.add(steppe_gold)
-        await db.commit()
-        await db.refresh(steppe_gold)
-
-    result = await db.execute(select(Farm))
-    farms_in_db = result.scalars().all()
-    print("Farms in DB:", [(f.id, f.name) for f in farms_in_db])
-
-    crops_data = [
-        {"plant_name": "Wheat",     "harvest_year": 2023, "farm": sunrise_farm},
-        {"plant_name": "Sunflower", "harvest_year": 2023, "farm": sunrise_farm},
-        {"plant_name": "Barley",    "harvest_year": 2024, "farm": green_valley},
-        {"plant_name": "Corn",      "harvest_year": 2024, "farm": green_valley},
-        {"plant_name": "Rapeseed",  "harvest_year": 2023, "farm": steppe_gold},
-        {"plant_name": "Wheat",     "harvest_year": 2024, "farm": steppe_gold},
-    ]
-
-    for c in crops_data:
-        result = await db.execute(
-            select(Crop).where(
-                (Crop.plant_name == c["plant_name"]) &
-                (Crop.farm_id == c["farm"].id)
-            )
-        )
-        exists = result.scalar_one_or_none()
-        if not exists:
-            crop = Crop(
-                plant_name=c["plant_name"],
-                harvest_year=c["harvest_year"],
-                farm_id=c["farm"].id
-            )
-            db.add(crop)
-    await db.commit()
-
-
 async def seed_receipt_for_dish(db: AsyncSession):
     # UUID существующего блюда
     dish_id = "7960bff0-2200-4989-ad28-9ef0d01e3d8a"
 
     # Проверяем, есть ли уже блюдо
     result = await db.execute(select(Dish).where(Dish.id == dish_id))
-    print("dDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", result)
     dish = result.scalar_one_or_none()
 
     if dish:
@@ -172,6 +96,7 @@ async def seed_receipt_for_dish(db: AsyncSession):
 async def seed_roles(db: AsyncSession):
     roles_data = [
         {"name": "admin",},
+        {"name": "user",},
         {"name": "conditer",},
     ]
 
@@ -190,120 +115,14 @@ async def seed_roles(db: AsyncSession):
 
     await db.commit()
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from data_access.db.models.user import User
-from data_access.db.models.tutor import Tutor
-import hashlib
-
 def hash_password(password: str) -> str:
     return hashlib.md5(password.encode('utf-8')).hexdigest()
 
-async def seed_tutors(db: AsyncSession):
-    """Tutor кестесін толтыру, User Foreign Key бар екенін тексеру"""
-
-    users_data = [
-        {"first_name": "Aruzhan", "last_name": "Kairat", "email": "aru@gmail.com", "password": "123"},
-        {"first_name": "Dias", "last_name": "Serik", "email": "dias@gmail.com", "password": "123"},
-        {"first_name": "Aigerim", "last_name": "Nurlan", "email": "aigerim@gmail.com", "password": "123"},
-    ]
-
-    # 👉 получаем роль (как в register_user)
-    result = await db.execute(
-        select(Role).where(Role.name == "conditer")
-    )
-    role_object = result.scalar_one_or_none()
-
-    if not role_object:
-        raise Exception("Role 'conditer' not found")
-
-    users = []
-
-    for u in users_data:
-        result = await db.execute(
-            select(User).where(User.email == u["email"])
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            user = User(
-                first_name=u["first_name"],
-                last_name=u["last_name"],
-                email=u["email"],
-                password=hash_password(u["password"]),  # ✅ хэш
-                role_id=role_object.id,                # ✅ роль
-            )
-            db.add(user)
-            await db.commit()
-            await db.refresh(user)
-
-        users.append(user)
-
-    # --- DEBUG ---
-    result = await db.execute(select(User))
-    all_users = result.scalars().all()
-    print("Users in DB:", [(u.id, u.email) for u in all_users])
-
-    # --- TUTORS ---
-    tutors_data = [
-        {
-            "user": users[0],
-            "bio": "Math tutor with 5 years experience",
-            "experience_years": 5,
-            "education": "KazNU",
-            "price_per_hour": 5000,
-            "format": "online",
-            "city": "Almaty",
-        },
-        {
-            "user": users[1],
-            "bio": "Physics tutor",
-            "experience_years": 3,
-            "education": "ENU",
-            "price_per_hour": 4000,
-            "format": "offline",
-            "city": "Astana",
-        },
-        {
-            "user": users[2],
-            "bio": "English tutor",
-            "experience_years": 6,
-            "education": "KIMEP",
-            "price_per_hour": 6000,
-            "format": "both",
-            "city": "Karaganda",
-        },
-    ]
-
-    for t in tutors_data:
-        result = await db.execute(
-            select(Tutor).where(Tutor.user_id == t["user"].id)
-        )
-        exists = result.scalar_one_or_none()
-
-        if not exists:
-            tutor = Tutor(
-                user_id=t["user"].id,
-                bio=t["bio"],
-                experience_years=t["experience_years"],
-                education=t["education"],
-                price_per_hour=t["price_per_hour"],
-                currency="KZT",
-                format=t["format"],
-                city=t["city"],
-            )
-            db.add(tutor)
-
-    await db.commit()
-
 async def run_seeders(db: AsyncSession):
-    # await seed_farms(db)
-    # await seed_crops(db)
     # await seed_dishes(db)
     # await seed_receipt_for_dish(db)
     # await seed_roles(db)
-    await seed_tutors(db)
-
+    ...
 
 async def main():
     async with AsyncSessionLocal() as db:
