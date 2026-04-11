@@ -52,3 +52,6 @@ class UserService:
             UserAllRead.model_validate(user)
             for user in all_users
         ]
+
+    async def get_user_role_by_user_id(self, user_id) -> str:
+        return await self.repo.get_user_role_by_user_id(user_id)

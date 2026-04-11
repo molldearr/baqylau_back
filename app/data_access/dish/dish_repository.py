@@ -3,9 +3,12 @@ from sqlalchemy import func, select
 from uuid import UUID
 
 from sqlalchemy.orm import selectinload
+from data_access.db.models.receipt import Receipt
+from data_access.db.models.receipt_ingredient import ReceiptIngredient
 from data_access.db.models.rating import Rating
 from data_access.db.models.dish_image import DishImage
 from data_access.db.models.dish import Dish
+from sqlalchemy import or_
 
 
 class DishRepository:
@@ -21,8 +24,8 @@ class DishRepository:
                 DishImage.image_path,
                 func.avg(Rating.value).label("avg_rating")
             )
-            .outerjoin(DishImage, DishImage.dish_id == Dish.id)
-            .outerjoin(Rating, Rating.dish_id == Dish.id)
+            .join(DishImage, DishImage.dish_id == Dish.id)
+            .join(Rating, Rating.dish_id == Dish.id)
             .group_by(Dish.id, Dish.name, Dish.description, DishImage.image_path)
         )
 
@@ -33,9 +36,13 @@ class DishRepository:
             select(Dish)
             .options(
                 selectinload(Dish.images),
-                selectinload(Dish.receipt),
                 selectinload(Dish.kitchen),
                 selectinload(Dish.comments),
+                selectinload(Dish.difficulties),
+                
+                selectinload(Dish.receipt)
+                .selectinload(Receipt.receipt_ingredients)
+                .selectinload(ReceiptIngredient.ingredient),
             )
             .where(Dish.id == dish_id)
         )
@@ -47,3 +54,31 @@ class DishRepository:
         await self.db.refresh(db_dish)  
         
         return db_dish
+
+    async def search_dish(self, search_word: str):
+        ts_query = func.plainto_tsquery("russian", search_word)
+
+        base_query = (
+            select(Dish)
+            .options(
+                selectinload(Dish.images),
+                selectinload(Dish.ratings)
+            )
+        )
+
+        fts_query = base_query.where(
+            Dish.search_vector.op("@@")(ts_query)
+        )
+
+        like_query = base_query.where(
+            Dish.name.ilike(f"%{search_word}%")
+        )
+
+        result = await self.db.execute(fts_query)
+        rows = result.scalars().all()
+
+        if rows:
+            return rows
+
+        result = await self.db.execute(like_query)
+        return result.scalars().all()

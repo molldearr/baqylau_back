@@ -1,18 +1,18 @@
-"""created all tables
+"""removed receipt_id from dish
 
-Revision ID: 484f4e3e5e1d
+Revision ID: 02555fc4bb5c
 Revises: 
-Create Date: 2026-04-03 11:44:02.487124
+Create Date: 2026-04-11 13:33:33.155428
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '484f4e3e5e1d'
+revision: str = '02555fc4bb5c'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,6 +24,11 @@ def upgrade() -> None:
     op.create_table('difficulties',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('ingredients',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('title', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('kitchens',
@@ -51,8 +56,18 @@ def upgrade() -> None:
     sa.Column('difficulty_id', sa.UUID(), nullable=True),
     sa.Column('receipt_id', sa.UUID(), nullable=True),
     sa.Column('kitchen_id', sa.UUID(), nullable=True),
+    sa.Column('search_vector', postgresql.TSVECTOR(), nullable=True),
     sa.ForeignKeyConstraint(['difficulty_id'], ['difficulties.id'], ),
     sa.ForeignKeyConstraint(['kitchen_id'], ['kitchens.id'], ),
+    sa.ForeignKeyConstraint(['receipt_id'], ['receipts.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('receipt_ingredients',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('receipt_id', sa.UUID(), nullable=True),
+    sa.Column('ingredient_id', sa.UUID(), nullable=True),
+    sa.Column('quantity', sa.String(), nullable=True),
+    sa.ForeignKeyConstraint(['ingredient_id'], ['ingredients.id'], ),
     sa.ForeignKeyConstraint(['receipt_id'], ['receipts.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -107,9 +122,11 @@ def downgrade() -> None:
     op.drop_table('dish_images')
     op.drop_table('comments')
     op.drop_table('users')
+    op.drop_table('receipt_ingredients')
     op.drop_table('dishes')
     op.drop_table('roles')
     op.drop_table('receipts')
     op.drop_table('kitchens')
+    op.drop_table('ingredients')
     op.drop_table('difficulties')
     # ### end Alembic commands ###

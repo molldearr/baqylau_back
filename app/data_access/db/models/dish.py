@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, String, Float
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import TSVECTOR, UUID
 from sqlalchemy.orm import relationship
 import uuid
 from data_access.db.base import Base
@@ -17,8 +17,10 @@ class Dish(Base):
     difficulty_id = Column(UUID(as_uuid=True), ForeignKey("difficulties.id"))
 
     receipt_id = Column(UUID(as_uuid=True), ForeignKey("receipts.id"))
-    
+
     kitchen_id = Column(UUID(as_uuid=True), ForeignKey("kitchens.id"))
+    
+    search_vector = Column(TSVECTOR)
 
     images = relationship("DishImage", back_populates="dish")
 

@@ -62,3 +62,14 @@ class UserRepository:
 
         users = result.scalars().all()
         return users
+
+    async def get_user_role_by_user_id(self, user_id: UUID) -> str | None:
+        result = await self.db.execute(
+            select(User)
+            .options(selectinload(User.roles))
+            .where(User.id == user_id)
+        )
+        user = result.scalar_one_or_none()
+        if user and user.roles:
+            return user.roles.name
+        return None

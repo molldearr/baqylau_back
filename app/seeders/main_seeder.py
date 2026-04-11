@@ -12,6 +12,8 @@ from rating_seeder import seed_ratings
 from receipt_seeder import seed_receipts
 from role_seeder import seed_roles
 from user_seeder import seed_users
+from ingredient_seeder import seed_ingredients
+from receipt_ingredient_seeder import seed_receipt_ingredients
 
 
 async def main():
@@ -19,7 +21,9 @@ async def main():
         await seed_kitchens(db)
         await seed_difficulties(db)
         await seed_dishes(db)
+        await seed_ingredients(db)
         await seed_receipts(db)
+        await seed_receipt_ingredients(db)
         await seed_roles(db)
         await seed_users(db)
         await seed_ratings(db)

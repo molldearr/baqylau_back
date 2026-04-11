@@ -5,19 +5,13 @@ import uuid
 from data_access.db.base import Base
 
 
-class Receipt(Base):
-    __tablename__ = "receipts"
+class Ingredient(Base):
+    __tablename__ = "ingredients"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-
     title = Column(String, nullable=False)
-    instructions = Column(String, nullable=False)
-    cooking_time = Column(Integer)
-    calorie = Column(Integer)
-
-    dishes = relationship("Dish", back_populates="receipt")
 
     receipt_ingredients = relationship(
         "ReceiptIngredient",
-        back_populates="receipt"
+        back_populates="ingredient"
     )

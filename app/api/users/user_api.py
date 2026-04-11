@@ -34,7 +34,7 @@ async def user_login(
 @router.get("/all")
 async def get_all_users(
     service: UserService = Depends(get_user_service),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user(required_roles=["admin"])),
 ):
     result = await service.get_all_users()
     

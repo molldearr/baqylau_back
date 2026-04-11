@@ -12,9 +12,9 @@ def get_user_service(db: AsyncSession = Depends(get_db)) -> RoleService:
 
 
 @router.get("/all")
-async def get_all_users(
+async def get_all_roles(
     service: RoleService = Depends(get_user_service),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user(required_roles=["admin"])),
 ):
     result = await service.get_all_roles()
     
